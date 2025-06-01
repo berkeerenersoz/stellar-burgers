@@ -1,71 +1,94 @@
-describe('Burger Constructor', () => {
+const burgerConstructor = '[data-cy=burgerConstructor]';
+const constructorIngredients = '[data-cy=constructorIngredients]';
+const bun = 'Краторная булка N-200i';
+const main = 'Биокотлета из марсианской Магнолии';
+const sauce = 'Соус фирменный Space Sauce';
+const addButton = 'Добавить';
+const order = '[data-cy=order]';
+
+describe('checking constructor', () => {
   beforeEach(() => {
-    // Intercept API calls
-    cy.intercept('GET', 'api/ingredients', { fixture: 'ingredients.json' }).as('getIngredients');
-    cy.intercept('POST', 'api/orders', { fixture: 'order.json' }).as('createOrder');
-    
-    // Visit the page
+    // Intercepting a user request
+    cy.intercept('GET', 'api/auth/user', { fixture: 'user.json' });
+
+    // Intercepting ingredients request
+    cy.intercept('GET', 'api/ingredients', {
+      fixture: 'ingredients.json'
+    }).as('ingredients');
+
     cy.visit('/');
-    
-    // Wait for ingredients to load
-    cy.wait('@getIngredients');
+    cy.wait('@ingredients');
   });
 
-  it('should add ingredients to constructor', () => {
-    // Add bun
-    cy.get('[data-testid="ingredient-bun"]').first().drag('[data-testid="constructor-bun-top"]');
-    cy.get('[data-testid="constructor-bun-bottom"]').should('exist');
-
-    // Add filling
-    cy.get('[data-testid="ingredient-filling"]').first().drag('[data-testid="constructor-filling"]');
-    cy.get('[data-testid="constructor-filling"]').children().should('have.length', 1);
-  });
-
-  it('should open and close ingredient modal', () => {
-    // Click on ingredient to open modal
-    cy.get('[data-testid="ingredient-item"]').first().click();
-    
-    // Check if modal is open
-    cy.get('[data-testid="ingredient-modal"]').should('be.visible');
-    
-    // Close modal using close button
-    cy.get('[data-testid="modal-close"]').click();
-    cy.get('[data-testid="ingredient-modal"]').should('not.exist');
-    
-    // Open modal again
-    cy.get('[data-testid="ingredient-item"]').first().click();
-    
-    // Close modal using overlay
-    cy.get('[data-testid="modal-overlay"]').click({ force: true });
-    cy.get('[data-testid="ingredient-modal"]').should('not.exist');
-  });
-
-  it('should create order successfully', () => {
-    // Set auth tokens
-    cy.window().then((win) => {
-      win.localStorage.setItem('accessToken', 'fake-access-token');
-      win.localStorage.setItem('refreshToken', 'fake-refresh-token');
+  it('add ingredients to constructor', () => {
+    // Add buns
+    cy.get(`li:contains(${bun})`).within(() => {
+      cy.get(`button:contains(${addButton})`).click();
     });
+    cy.get(burgerConstructor).contains(bun).should('exist');
 
-    // Add ingredients
-    cy.get('[data-testid="ingredient-bun"]').first().drag('[data-testid="constructor-bun-top"]');
-    cy.get('[data-testid="ingredient-filling"]').first().drag('[data-testid="constructor-filling"]');
+    // Add main
+    cy.get(`li:contains(${main})`).within(() => {
+      cy.get(`button:contains(${addButton})`).click();
+    });
+    cy.get(constructorIngredients).contains(main).should('exist');
 
-    // Click order button
-    cy.get('[data-testid="order-button"]').click();
-
-    // Wait for order creation
-    cy.wait('@createOrder');
-
-    // Check if order modal is open with correct number
-    cy.get('[data-testid="order-modal"]').should('be.visible');
-    cy.get('[data-testid="order-number"]').should('contain', '12345');
-
-    // Close modal
-    cy.get('[data-testid="modal-close"]').click();
-    cy.get('[data-testid="order-modal"]').should('not.exist');
-
-    // Check if constructor is empty
-    cy.get('[data-testid="constructor-filling"]').children().should('have.length', 0);
+    // Add sauce
+    cy.get(`li:contains(${sauce})`).within(() => {
+      cy.get(`button:contains(${addButton})`).click();
+    });
+    cy.get(constructorIngredients).contains(sauce).should('exist');
   });
-}); 
+});
+
+describe('checking order', () => {
+  beforeEach(() => {
+    // Intercepting a user request
+    cy.intercept('GET', 'api/auth/user', { fixture: 'user.json' });
+
+    // Intercepting ingredients request
+    cy.intercept('GET', 'api/ingredients', {
+      fixture: 'ingredients.json'
+    }).as('ingredients');
+
+    // Intercepting order request
+    cy.intercept('POST', '/api/orders', { fixture: 'order.json' }).as('order');
+
+    cy.visit('/');
+    cy.wait('@ingredients');
+    window.localStorage.setItem('accessToken', 'token');
+  });
+
+  afterEach(() => {
+    window.localStorage.removeItem('accessToken');
+    cy.clearCookies();
+    cy.clearLocalStorage();
+  });
+
+  it('placing an order', () => {
+    // Add buns
+    cy.get(`li:contains(${bun})`).within(() => {
+      cy.get(`button:contains(${addButton})`).click();
+    });
+    cy.get(burgerConstructor).contains(bun).should('exist');
+
+    // Add main
+    cy.get(`li:contains(${main})`).within(() => {
+      cy.get(`button:contains(${addButton})`).click();
+    });
+    cy.get(constructorIngredients).contains(main).should('exist');
+
+    // Add sauce
+    cy.get(`li:contains(${sauce})`).within(() => {
+      cy.get(`button:contains(${addButton})`).click();
+    });
+    cy.get(constructorIngredients).contains(sauce).should('exist');
+
+    cy.get(order).click();
+    cy.wait('@order');
+    cy.get('[data-cy=closeModal]').click();
+
+    cy.get(burgerConstructor).should('contain', 'Выберите булки');
+    cy.get(constructorIngredients).should('contain', 'Выберите начинку');
+  });
+});

@@ -1,9 +1,11 @@
 import { configureStore, combineReducers } from '@reduxjs/toolkit';
-import { userSlice } from './slices/userSlice/userSlice';
-import { orderSlice } from './slices/orderSlice/orderSlice';
-import { feedSlice } from './slices/feedSlice/feedSlice';
-import { ingredientsSlice } from './slices/ingredientsSlice/ingredientsSlice';
-import { constructorSlice } from './slices/constructorSlice/constructorSlice';
+import {
+  userSlice,
+  orderSlice,
+  feedSlice,
+  ingredientsSlice,
+  constructorSlice
+} from '@slices';
 import {
   TypedUseSelectorHook,
   useDispatch as dispatchHook,
