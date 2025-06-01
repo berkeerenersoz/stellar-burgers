@@ -10,7 +10,7 @@ module.exports = {
     '^@ui-pages(.*)$': '<rootDir>/src/components/ui/pages$1',
     '^@pages(.*)$': '<rootDir>/src/pages$1',
     '^@selectors(.*)$': '<rootDir>/src/services/selectors$1',
-    '\\.(css|less|scss|sass)$': 'identity-obj-proxy',
+    '\\.(css|less|scss|sass)$': '<rootDir>/__mocks__/styleMock.js',
     '\\.(jpg|jpeg|png|gif|webp|svg)$': '<rootDir>/__mocks__/fileMock.js'
   },
   setupFilesAfterEnv: ['<rootDir>/src/setupTests.ts'],
