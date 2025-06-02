@@ -13,7 +13,7 @@ const createMockStore = (initialState = {}) => {
 };
 
 describe('AppHeader', () => {
-  const renderComponent = (userName = null) => {
+  const renderComponent = (userName: string | null = null) => {
     const initialState = {
       user: {
         user: userName ? { name: userName } : null
